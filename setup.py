@@ -8,7 +8,7 @@ def read(fname):
 
 setup(
     name="fruit",
-    version="0.1.1",
+    version="0.1.2",
     packages=['fruit'],
     install_requires=['click', 'colorama', 'pyyaml', 'checksumdir'],
     entry_points={
@@ -17,7 +17,7 @@ setup(
     author="Marcell Pigniczki",
     author_email="marcip97@gmail.com",
     description="Create and run automations based on yaml files",
-    long_description=read('readme.md'),
+    long_description=read('readme.rst'),
     license="MIT",
     keywords="fruit automation yaml",
     url="https://github.com/codesaurus97/fruit",
