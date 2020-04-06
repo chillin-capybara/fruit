@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 import os
 
 
@@ -8,8 +8,8 @@ def read(fname):
 
 setup(
     name="fruit",
-    version="0.1.2",
-    packages=['fruit'],
+    version="0.1.7",
+    packages=find_packages(),
     install_requires=['click', 'colorama', 'pyyaml', 'checksumdir'],
     entry_points={
         'console_scripts': ['fruit=fruit.fruit:cli'],

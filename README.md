@@ -19,6 +19,7 @@ necessary information to execute commands, use global variables and list expansi
 
 Each fruit needs a name, which will identify the project the fruit belongs to.
 To set the project name, use the following syntax:
+
 ```yaml
 name: My Project Name
 ```
