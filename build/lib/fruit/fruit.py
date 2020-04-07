@@ -50,18 +50,29 @@ def list(path: str = None):
         click.secho(str(exc), fg='red')
 
 @cli.command()
-@click.argument('path', required=True)
-@click.argument('job', required=False)
-def ripen(path: str, job: str):
-    r"""
+@click.argument('args', nargs=-1, required=True)
+def run(args: list):
+    """
     Execute an available job.
+
+    Examples::
+    
+    \b
+        fruit run [JOB]
+        fruit run [PATH] [JOB]
     
     PATH - Path (directory) of the configuration file
     JOB  - Name of the job (Use 'all' to run all jobs)
     """
 
-    if path is None:
-        path = '.'
+    if len(args) == 1:
+        path = '.' # Set the local path
+        job  = args[0] # Set the job from argument
+    elif len(args) == 2:
+        path = args[0] # Set the path from argument
+        job = args[1]  # Set the job from the second argument
+
+    # TODO: Add command options for output hiding, etc...
 
     try:
         # Find the fruit configuraiton file to execute

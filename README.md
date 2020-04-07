@@ -6,6 +6,7 @@ The readme is under development...
 
 - yaml syntax checking for step types
 - step type: `fruit` to ripen a fruit inside a ripening
+- finish implementing step type: job
 - better documentation
 - implement unit tests
 

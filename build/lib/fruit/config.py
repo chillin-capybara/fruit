@@ -16,4 +16,5 @@ ICON_FRUIT   = "🥝"
 
 
 LINE_SEP = "-"*80
+JOB_SEP  = ">"*80
 SHELLCHAR = "$ "

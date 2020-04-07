@@ -8,7 +8,7 @@ def read(fname):
 
 setup(
     name="fruit",
-    version="0.1.7",
+    version="0.1.8",
     packages=find_packages(),
     install_requires=['click', 'colorama', 'pyyaml', 'checksumdir'],
     entry_points={

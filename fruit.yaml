@@ -1,10 +1,5 @@
 name: Release Fruit to PYPI
 desc: Release the newest version of the fruit package
-glob:
-  sth: empty
-lists:
-  dummy:
-    - 1
 jobs:
   release:
     desc: Compile and push the new version of fruit to PYPI
