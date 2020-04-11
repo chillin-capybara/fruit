@@ -1,0 +1,14 @@
+Implement:
+  ☐ Fruit document fruitconfig
+  ✔ Show build results @done(20-04-11 22:46)
+  ✔ Use with statement for steps @done(20-04-11 22:46)
+  ☐ Cli to create an example fruitconfig file
+  ☐ Fruit call target from a target!
+  ☐ Help string for fruit
+  ☐ Call targets after each other!
+  ✔ Add support for @done(20-04-12 01:30)
+    ✔ fruit.skipped @done(20-04-12 00:46)
+    ✔ fruit.error @done(20-04-12 01:29)
+  ☐ Read python as UTF-8 @today  
+  ✔ Target name override with decorators @done(20-04-12 00:46)
+  ☐ fruit get <var> (@provider decorator)

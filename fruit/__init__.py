@@ -5,7 +5,7 @@ from fruit.modules.console import echo, error, warning
 from fruit.api.decorators import target, step
 
 # Export exceptions
-from fruit.api.api import abort
+from fruit.api.api import abort, finish, skip, fail
 
 # Export the shell module
 from fruit.api.shell import shell

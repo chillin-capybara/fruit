@@ -3,14 +3,17 @@ Tratatata...
 """
 
 import click
+import sys
 from tabulate import tabulate
 from fruit.modules.fruitloader import load
 from fruit.modules.garden import Garden
 import fruit.modules.console as console
 
+
 @click.group()
 def cli():
     pass
+
 
 @cli.command()
 @click.argument('path', default='.')
@@ -37,7 +40,6 @@ def collect(path:str):
         console.error(str(err))
 
 
-
 @cli.command()
 @click.argument('target', required=True)
 def make(target: str):
@@ -53,3 +55,9 @@ def make(target: str):
         Garden().make_target(target)
     except Exception as err:
         console.error(str(err))
+
+
+# Main application code of the project
+def main():
+    # Call the click handler
+    cli()

@@ -8,11 +8,11 @@ def read(fname):
 
 setup(
     name="fruit",
-    version="0.2.0",
+    version="0.2.7",
     packages=find_packages(),
-    install_requires=['click', 'colorama'],
+    install_requires=['click', 'colorama', 'tabulate', 'questionary'],
     entry_points={
-        'console_scripts': ['fruit=fruit.fruit:cli'],
+        'console_scripts': ['fruit=fruit.fruit:main'],
     },
     author="Marcell Pigniczki",
     author_email="marcip97@gmail.com",
