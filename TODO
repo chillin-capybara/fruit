@@ -11,4 +11,4 @@ Implement:
     ✔ fruit.error @done(20-04-12 01:29)
   ☐ Read python as UTF-8 @today  
   ✔ Target name override with decorators @done(20-04-12 00:46)
-  ☐ fruit get <var> (@provider decorator)
+  ✔ fruit get <var> (@provider decorator) @done(20-04-12 16:34)

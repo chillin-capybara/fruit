@@ -4,11 +4,13 @@ Fruit garden is the master collection singleton of the application
 from .patterns import SingletonMeta
 from .target   import Target, FruitError
 from .step     import AbortStepSignal
+from .provider import Provider
 import fruit.modules.console as console
 
 class Garden(metaclass=SingletonMeta):
 
     __targets : list = None
+    __providers: list = None
     __active_target : Target = None
 
     # Overall returncode of the file. Each target call resets it
@@ -19,6 +21,64 @@ class Garden(metaclass=SingletonMeta):
         # Initialize the collection the first time
         if self.__targets is None:
             self.__targets = []
+        
+        # Initialize the provider list
+        if self.__providers is None:
+            self.__providers = []
+
+    def add_provider(self, provider: Provider) -> None:
+        """
+        Append an information provider to the global collection of providers.
+        
+        Parameters
+        ----------
+        `provider` : Provider
+            Provider object to append
+        
+        Raises
+        ------
+        TypeError
+            Raised, when the passed object is not a provider.
+        """
+        if isinstance(provider, Provider):
+            self.__providers.append(provider)
+        else:
+            raise TypeError("The given object is not an information provider!")
+    
+    def run_provider(self, name: str) -> str:
+        """
+        Execute an information provider to objtain the requested values.
+        
+        Parameters
+        ----------
+        `name` : str
+            Name of the provider to get.
+        
+        Returns
+        -------
+        str
+            Provided value.
+        """
+        # TODO: Add argument propagation!!!
+        flt = list(filter(lambda p: p.name == name, self.__providers))
+
+        if len(flt) < 1:
+            raise ValueError(f"The provider '{name}' is not found!")
+        else:
+            prov, = flt
+            return prov()
+    
+    def get_providers(self):
+        """
+        Get the list of registered providers.
+        
+        Yields
+        -------
+        Provider
+            All registered providers.
+        """
+        for each_provider in self.__providers:
+            yield each_provider
 
     def add_target(self, target: Target):
         """
