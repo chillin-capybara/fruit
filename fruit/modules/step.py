@@ -64,6 +64,7 @@ class Step(object):
         """
         Enter the context of the current step.
         """
+        console.echo()
         # Print the step header
         self.print_stephead()
 

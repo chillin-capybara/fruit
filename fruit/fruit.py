@@ -54,20 +54,14 @@ def collect(path:str):
 
 
 @cli.command()
-@click.argument('target', required=True)
+@click.argument('target', required=True, nargs=-1)
 def make(target: str):
     """
     Make a fruit target from the parsed fruitconfig.py file.
     """
-    try:
-        console.echo()
-        console.echo("🍓 Making target '{}'... ".format(target))
-        console.echo()
-        load('.')
-
-        Garden().make_target(target)
-    except Exception as err:
-        console.error(str(err))
+    load('.')
+    # Pass all the targets to the make function
+    Garden().make_multiple(*target)
 
 @cli.command()
 @click.argument('name', required=True)

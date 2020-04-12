@@ -6,6 +6,7 @@ Implement:
   ☐ Fruit call target from a target!
   ☐ Help string for fruit
   ☐ Call targets after each other!
+  ☐ Empty target descriptions
   ✔ Add support for @done(20-04-12 01:30)
     ✔ fruit.skipped @done(20-04-12 00:46)
     ✔ fruit.error @done(20-04-12 01:29)

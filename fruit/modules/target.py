@@ -3,158 +3,71 @@ import fruit.modules.console as console
 import tabulate
 import fruit.globals as glb
 
+from .event import Event
+
+from typing import Callable
+
 class FruitError(Exception):
     """Error class for aborting the target make"""
     pass
 
 class Target(object):
     name: str = ""
-    desc: str = ""
-    __func : callable = None
+    help: str = ""
+    __func: Callable[[], None] = None
 
-    __steps: list = None
+    OnActivate: Event = None  # Event to call when a target is activated
+    OnDeactivate: Event = None  # Event to call when a target finished executing
 
-    __active_step: Step = None # Object pointing to the currently active step
-
-    def __init__(self, func: any, name: str, desc: str):
+    def __init__(self, func:Callable[[], None], name: str, help:str=""):
         """
-        Initialize a new target from name description and callback
-        
+        Create a target object with the given target name and target function.
+
         Parameters
         ----------
-        `func` : any
+        `func` : Callable[[], None]
             Target function to call
         `name` : str
-            Name of the target
-        `desc` : str
-            Description of the target
-        """
-        
-        if type(name) is not str:
-            raise TypeError("The target name must be a string!")
+            Target name
+        `help` : str, optional
+            Target help (description), by default ""
 
-        if type(desc) is not str:
-            raise TypeError("The target description must be a string!")
-        
+        Raises
+        ------
+        TypeError
+            Invalid target function
+        TypeError
+            Invalid target name
+        ValueError
+            Invalid target name length
+        TypeError
+            Invalid target help
+        """
+        # Parameter validation
         if not callable(func):
-            raise TypeError("The target function must be a callable!")
-
-        self.name = name
-        self.desc = desc
-        self.__func = func
-
-        self.__steps = []
-    
-    def add_step(self, step: Step):
-        """
-        Add a step, that is currently being executed to the target.
-        
-        Parameters
-        ----------
-        `step` : Step
-            Step object
-        """
-        self.__steps.append(step)
-
-        # Set the active step
-        self.__active_step = step
-    
-    def fallback_step(self, step: Step):
-        """
-        Set the active step back to an already existing value without appending it as a new
-        step.
-        
-        Parameters
-        ----------
-        `step` : Step
-            Step to fall back to.
-
-        When calling a step inside a step and then performing other actions the context
-        manager will keep track of the currently active step.
-        Example::
-            @fruit.step
-            def step1():
-                print('Step1')
-            
-            @fruit.step
-            def step2():
-                print('Step2 start')
-                step1()
-                print('Step2 end')
-        """
-        self.__active_step = step
-    
-    def get_active_step(self) -> Step:
-        """
-        Get the currently active step. When there is no active step `None` will be returned.
-        
-        Returns
-        -------
-        Step
-            Currently active step or `None`
-        """
-        # TODO: Reset active step after target finish!
-        return self.__active_step
-
-    def count_steps(self) -> int:
-        """
-        Get the number of registered steps
-        
-        Returns
-        -------
-        int
-            Number of steps
-        """
-        return len(self.__steps)
-    
-    def override_function(self, function:callable):
-        """
-        Override the callable target funcrion with a decorated function.
-        
-        Parameters
-        ----------
-        `function` : callable
-            New wrapped function
-        """
-        self.__func = function
-        
-    
-    def print_targethead(self, as_step:bool = False):
-        """
-        Print a headline to the console to incicate the the target has been
-        activated.
-        
-        Parameters
-        ----------
-        as_step : bool, optional
-            If true, the target will be handled as a step, by default False
-        """
-        if(not as_step):
-            console.echo(glb.FMT_TARGETHEADER.format(target=self.name))
+            raise TypeError('The given target function is not callable!')
         else:
-            console.echo(glb.FMT_SUBTARGETHEADER.format(target=self.name))
-    
-    def print_results(self):
-        """
-        Print the list of executed steps / targets and indicate, which was
-        successful.
-        """
-        console.echo("Results:")
-        console.echo()
+            self.__func = func
 
-        results = []
-        for each_step in self.__steps:
-            if each_step.status == STATUS_OK:
-                icon = glb.ICON_SUCC
-            elif each_step.status == STATUS_SKIPPED:
-                icon = glb.ICON_SKIP
-            else:
-                icon = glb.ICON_FAIL
-                
-            results.append((icon, each_step.name))
-        
-        console.echo(tabulate.tabulate(results, headers=['🍋', 'Step']))
+        if type(name) is not str:
+            raise TypeError('Target name must be a string!')
+        elif len(name) < 1:
+            raise ValueError('Target name cannot be an empty string!')
+        else:
+            self.name = name
 
+        if type(help) is not str:
+            raise TypeError('Target help must be a string!')
+        else:
+            self.help = help
+
+        # Create the class events with an example call signature
+        self.OnActivate = Event(sender=self)
+        self.OnDeactivate = Event(sender=self)
 
     def __call__(self):
+        """Call the target function and additional events."""
+        self.OnActivate(sender=self)
         self.__func()
+        self.OnDeactivate(sender=self)
+

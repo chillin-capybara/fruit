@@ -32,7 +32,10 @@ def fail(reason:str= None) -> None:
     reason : str, optional
         Reason of the error, by default None
     """
-    raise FailStepSignal(reason)
+    if reason is None:
+        raise  FailStepSignal()
+    else:
+        raise FailStepSignal(reason)
 
 # BUG: Skip propagates...
 def skip(reason: str= None):

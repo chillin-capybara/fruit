@@ -21,7 +21,7 @@ class Garden(metaclass=SingletonMeta):
         # Initialize the collection the first time
         if self.__targets is None:
             self.__targets = []
-        
+
         # Initialize the provider list
         if self.__providers is None:
             self.__providers = []
@@ -29,12 +29,12 @@ class Garden(metaclass=SingletonMeta):
     def add_provider(self, provider: Provider) -> None:
         """
         Append an information provider to the global collection of providers.
-        
+
         Parameters
         ----------
         `provider` : Provider
             Provider object to append
-        
+
         Raises
         ------
         TypeError
@@ -44,16 +44,16 @@ class Garden(metaclass=SingletonMeta):
             self.__providers.append(provider)
         else:
             raise TypeError("The given object is not an information provider!")
-    
+
     def run_provider(self, name: str) -> str:
         """
         Execute an information provider to objtain the requested values.
-        
+
         Parameters
         ----------
         `name` : str
             Name of the provider to get.
-        
+
         Returns
         -------
         str
@@ -67,11 +67,11 @@ class Garden(metaclass=SingletonMeta):
         else:
             prov, = flt
             return prov()
-    
+
     def get_providers(self):
         """
         Get the list of registered providers.
-        
+
         Yields
         -------
         Provider
@@ -121,6 +121,17 @@ class Garden(metaclass=SingletonMeta):
                 console.echo()  # New line before the results are printed
                 cl.print_results()
                 self.__active_target = None
+
+    def make_multiple(self, *targets):
+        """
+        Make every listed target. When a target is not found the make process will be
+        aborted.
+        """
+        print(targets)
+        # Call the make command on each passed target
+        for each_targetname in targets:
+            self.make_target(each_targetname)
+
 
     def activate_target(self, target: Target):
         """

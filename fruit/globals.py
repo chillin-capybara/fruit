@@ -2,9 +2,14 @@ import click
 
 FRUITCONFIG_NAME = "fruitconfig.py"
 
-FMT_STEPHEADER      = "🥝 Step {number}: {name}\n" + "-"* (click.get_terminal_size()[0] - 5)
-FMT_TARGETHEADER    = "🍉 Making '{target}' ..."
-FMT_SUBTARGETHEADER = "🍎 Making sub-target '{target}' ..." + ">"* (click.get_terminal_size()[0] - 5)
+WIDTH = (click.get_terminal_size()[0] - 10)
+
+SEP_TARGET          = "=" * WIDTH
+SEP_STEP            = "-" * WIDTH
+
+FMT_STEPHEADER      = "🥝 Step {number}: {name}\n" + "-"* WIDTH
+FMT_TARGETHEADER    = "🍉 Making '{target}' ...\n" + "=" * WIDTH
+FMT_SUBTARGETHEADER = "🍎 Making sub-target '{target}' ..." + ">"* WIDTH
 
 SHELLCHAR = '$ '
 
