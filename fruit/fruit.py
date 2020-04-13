@@ -8,10 +8,17 @@ from tabulate import tabulate
 from fruit.modules.fruitloader import load
 from fruit.modules.garden import Garden
 import fruit.modules.console as console
+import fruit.modules.printing as printing
 
+
+# Import the extensions!
+import fruit.extensions.global_providers
 
 @click.group()
 def cli():
+    """
+    Fruit cli framework for task automation.
+    """
     pass
 
 
@@ -27,31 +34,14 @@ def collect(path:str):
     try:
         # Load the config file
         load(path)
+        # Print the list of targets
+        printing.print_target_list(Garden().get_targets())
 
-        # List the targets
-        tbl = []
-
-        for trg in Garden().get_targets():
-            tbl.append((trg.name, trg.help))
-        
-        console.echo(tabulate(tbl, headers=['Target', 'Description']), )
-        console.echo()
-        console.echo("List of providers: ")
-
-        tbl.clear()
-        for prov in Garden().get_providers():
-            tbl.append((prov.name, prov.help))
-        
-        if len(tbl) > 0:
-            console.echo()
-            console.echo(tabulate(tbl, headers=['Provider', 'Description']), )
-        else:
-            console.echo("\tNo providers found!")
+        printing.print_provider_list(Garden().get_providers())
 
 
     except Exception as err:
         console.error(str(err))
-
 
 @cli.command()
 @click.argument('target', required=True, nargs=-1)

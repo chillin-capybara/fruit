@@ -9,6 +9,7 @@ import fruit.modules.console as console
 import fruit.modules.printing as printing
 
 from typing import List
+import os
 
 class Garden(metaclass=SingletonMeta):
 
@@ -17,6 +18,7 @@ class Garden(metaclass=SingletonMeta):
 
     __steps : list = None
     __target_stack: List[Target] = None
+    __step_stack : List[Step] = None
     # Overall returncode of the file. Each target call resets it
     __returncode: int = 1
 
@@ -28,6 +30,9 @@ class Garden(metaclass=SingletonMeta):
 
         if self.__target_stack is None:
             self.__target_stack = []
+        
+        if self.__step_stack is None:
+            self.__step_stack = []
 
         if self.__steps is None:
             self.__steps = list() # Initialize a new list for the steps
@@ -35,6 +40,17 @@ class Garden(metaclass=SingletonMeta):
         # Initialize the provider list
         if self.__providers is None:
             self.__providers = []
+    
+    def getcwd(self) -> str:
+        """
+        Get the absolute path of the current working directory.
+        
+        Returns
+        -------
+        str
+            Current path
+        """
+        return os.getcwd()
 
     def add_provider(self, provider: Provider) -> None:
         """
@@ -73,7 +89,7 @@ class Garden(metaclass=SingletonMeta):
         flt = list(filter(lambda p: p.name == name, self.__providers))
 
         if len(flt) < 1:
-            raise ValueError(f"The provider '{name}' is not found!")
+            raise ValueError(f"There is no provider found for '{name}'!")
         else:
             prov, = flt
             return prov()
@@ -185,6 +201,22 @@ class Garden(metaclass=SingletonMeta):
             return " / ".join(namestack) + " / "
         else:
             return ""
+    
+    def __get_step_prefix_step(self) -> str:
+        """
+        Get the step prefix from the nested steps. If steps are called from each other, then
+        they will be shown as nested steps!
+        
+        Returns
+        -------
+        str
+            Step name prefix
+        """
+        if len(self.__step_stack) > 1:
+            namestack = [step.name for step in self.__step_stack[:-1]]
+            return " :: ".join(namestack) + " :: "
+        else:
+            return ""
 
     def __add_step_name_prefix(self, name:str) -> str:
         """
@@ -195,14 +227,16 @@ class Garden(metaclass=SingletonMeta):
         str
             Step name with name prefixes
         """
-        # TODO: Nested steps
-        return self.__get_step_prefix_trg() + name
+        return self.__get_step_prefix_trg() + self.__get_step_prefix_step() +  name
 
     def delegate_OnStepActivate(self, sender: Step) -> None:
         """Add the step to the list of executed steps, when it is activated"""
-        # Add the necessary name prefixes to the step name
-        sender.name = self.__add_step_name_prefix(sender.name)
         self.__steps.append(sender)
+        self.__step_stack.append(sender)
+
+        # Name prefix is added ONLY for the full name! DON'T INHERIT IT
+        sender.fullname = self.__add_step_name_prefix(sender.name)
+
         printing.print_step_head(step=sender, number=self.get_curr_step_nr())
     
     def delegate_OnStepSkipped(self, sender: Step, exception: SkipStepSignal) -> None:
@@ -215,7 +249,7 @@ class Garden(metaclass=SingletonMeta):
         pass
     
     def delegate_OnStepDeactivate(self, sender: Step) -> None:
-        pass
+        __ = self.__step_stack.pop()
 
     def get_targets(self):
         for each_target in self.__targets:

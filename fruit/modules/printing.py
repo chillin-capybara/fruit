@@ -3,6 +3,7 @@ Printing module to print logs and results
 """
 
 from .target import Target
+from .provider import Provider
 from .step import Step, STATUS_ERR, STATUS_OK, STATUS_SKIPPED, STATUS_UNKNOWN
 import fruit.modules.console as console
 import click
@@ -19,6 +20,42 @@ ICON_OK     = "✅"
 ICON_SKIP   = "⏩"
 ICON_ERR    = "❌"
 ICON_UNKNOWN = "❔"
+
+def print_target_list(targets: List[Target]) -> None:
+    """
+    Print the list of targets in tabular format to the console.
+    
+    Parameters
+    ----------
+    targets : List[Target]
+        List of target objects
+    """
+    table = [(t.name, t.help) for t in targets]
+    if len(table) > 0:
+        console.echo()
+        console.echo("List of available targets:")
+        console.echo(tabulate.tabulate(table, headers=['Target', 'Description']))
+    else:
+        console.echo()
+        console.echo("No targets found!")
+
+def print_provider_list(providers: List[Provider]) -> None:
+    """
+    Print the list of providers in tabular format to the console.
+    
+    Parameters
+    ----------
+    providers : List[Provider]
+        List of provider objects
+    """
+    table = [(p.name, p.help) for p in providers]
+    if len(table) > 0:
+        console.echo()
+        console.echo("List of available providers:")
+        console.echo(tabulate.tabulate(table, headers=['Provider', 'Description']))
+    else:
+        console.echo()
+        console.echo("No providers found!")
 
 def print_target_head(target: Target) -> None:
     """
@@ -52,8 +89,11 @@ def print_step_head(step: Step, number: int) -> None:
     step : Step
         Step object
     """
+    mstring = f"{ICON_STEP} Step {number} : {step.fullname}"
+    if len(mstring) < WIDTH:
+        mstring += " " + "-"*(WIDTH -len(mstring)-2)
     console.echo()
-    console.echo(f"{ICON_STEP} Step {number} : {step.name}")
+    console.echo(mstring)
     console.echo()
 
 def print_step_foot(step: Step, number: int) -> None:
@@ -88,14 +128,16 @@ def print_summary(last_target:Target, steps:List[Step]) -> None:
             icon = ICON_UNKNOWN
             status = "Unknown"
         
-        name = each_step.name
+        name = each_step.fullname
         xtime = "%.3f" % each_step.time
         table.append((icon, status, xtime, name))
-    
+
     console.echo()
     console.echo(f"Summary of target '{last_target.name}':")
     console.echo()
     console.echo(tabulate.tabulate(table, headers=('', 'Status', 'Time', 'Name')))
+    console.echo()
+    console.echo_green(f"{ICON_OK} Target '{last_target.name}' was succesful!")
 
 def print_summary_abort(last_target:Target, steps:List[Step]) -> None:
     """
@@ -127,13 +169,13 @@ def print_summary_abort(last_target:Target, steps:List[Step]) -> None:
             icon = ICON_UNKNOWN
             status = "Unknown"
         
-        name = each_step.name
+        name = each_step.fullname
         xtime = "%.3f" % each_step.time
         table.append((icon, status, xtime, name))
-    
-    table.append((ICON_ERR, 'Aborted', 'N/A', last_target.name))
 
     console.echo()
     console.echo(f"Summary of target '{last_target.name}':")
     console.echo()
     console.echo(tabulate.tabulate(table, headers=('', 'Status', 'Time', 'Name')))
+
+    console.error(f"{ICON_ERR} Target '{last_target.name}' was unsuccessful!")

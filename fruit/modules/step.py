@@ -35,6 +35,8 @@ class Step(object):
     ----------
     name : str
         Step name
+    fullname : str
+        Full name of the step indicating its execution place
     help : str
         Help text (description) of the step
     status : int
@@ -58,6 +60,7 @@ class Step(object):
     """
 
     name: str = ""
+    fullname: str = ""
     help: str = ""
     status: int = STATUS_UNKNOWN
     time: float = .0
@@ -79,6 +82,7 @@ class Step(object):
         if type(name) is str:
             if len(name) > 0:
                 self.name = name
+                self.fullname = name
             else:
                 raise ValueError("The given name cannot be empty!")
         else:
@@ -113,19 +117,22 @@ class Step(object):
         try:
             retval = self.__func(*args, **kwargs)
             self.status = STATUS_OK
-        except SkipStepSignal as serr:
-            self.status = STATUS_SKIPPED
-            self.OnSkipped(sender=self, exception=serr)
-        except FailStepSignal as ferr:
-            self.status = STATUS_ERR
-            self.OnFailed(sender=self, exception=ferr)
-        except AbortStepSignal as aerr:
-            self.status = STATUS_ERR
-            self.time = time.time() - tic
-            self.OnAborted(sender=self, exception=aerr)
-            raise  # Raise the abort signal further!
-        finally: # In every case excep AbortStepSignal!!!
-            # Measure the elapsed execution time
             self.time = time.time() - tic
             self.OnDeactivate(sender=self)
             return retval
+        except SkipStepSignal as serr:
+            self.status = STATUS_SKIPPED
+            self.OnSkipped(sender=self, exception=serr)
+            self.time = time.time() - tic
+            self.OnDeactivate(sender=self)
+        except FailStepSignal as ferr:
+            self.status = STATUS_ERR
+            self.OnFailed(sender=self, exception=ferr)
+            self.time = time.time() - tic
+            self.OnDeactivate(sender=self)
+        except AbortStepSignal:
+            self.status = STATUS_ERR
+            self.time = time.time() - tic
+            raise
+
+        # NOTE: The fianlly: cannot be used as AbortStepSignal has to propagate
