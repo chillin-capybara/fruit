@@ -1,5 +1,5 @@
 from fruit.modules.target import FruitError
-from fruit.modules.step import SkipStepSignal, FailStepSignal
+from fruit.modules.step import SkipStepSignal, FailStepSignal, AbortStepSignal
 from fruit.modules.garden import Garden
 import fruit.modules.console as console
 
@@ -14,10 +14,10 @@ def abort(reason: str):
     
     Raises
     ------
-    FruitError
+    AbortStepSignal
         Error signal for target make 
     """
-    raise FruitError(reason) # TODO: AbortStepSignal!
+    raise AbortStepSignal(reason)
 
 def fail(reason:str= None) -> None:
     """

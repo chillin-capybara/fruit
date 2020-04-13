@@ -6,7 +6,7 @@ from fruit.modules.provider import Provider
 
 from typing import Callable, Any
 
-def target(name:str=None, help:str=None):
+def target(name:str=None, help:str=None): # TODO: Document
 
     def decorator(func:Callable[[], None]) -> Callable[[], None]:
         """Decorate the target function and register the target in the collection."""
@@ -31,28 +31,28 @@ def target(name:str=None, help:str=None):
     return decorator
 
 
-def step(name:str=None, help:str=None):
+def step(name:str=None, help:str=None): # TODO: Document
 
     def decorator(func:Callable[[Any], Any]) -> Callable[[Any], Any]:
-        stp_name = name if name is not None else func.__name__
-        stp_help = help if help is not None else ""
-
-        new_step = Step(func, name=stp_name, help=stp_help)
-
-        # Attach the event handlers
-        new_step.OnActivate += Garden().delegate_OnStepActivate
-        new_step.OnSkipped  += Garden().delegate_OnStepSkipped
-        new_step.OnFailed   += Garden().delegate_OnStepFailed
-        new_step.OnAborted  += Garden().delegate_OnStepAborted
-        new_step.OnDeactivate += Garden().delegate_OnStepDeactivate
 
         def wrapper(*args, **kwargs) -> Any:
+            # NOTE: Steps can be executed multiple times, the object creation belongs to the call!
+            stp_name = name if name is not None else func.__name__
+            stp_help = help if help is not None else ""
+
+            new_step = Step(func, name=stp_name, help=stp_help)
+
+            # Attach the event handlers
+            new_step.OnActivate   += Garden().delegate_OnStepActivate
+            new_step.OnSkipped    += Garden().delegate_OnStepSkipped
+            new_step.OnFailed     += Garden().delegate_OnStepFailed
+            new_step.OnAborted    += Garden().delegate_OnStepAborted
+            new_step.OnDeactivate += Garden().delegate_OnStepDeactivate
+
             return new_step(*args, **kwargs)
-        
+
         return wrapper
     return decorator
-
-
 
 def provider(name:str=None, help:str=None) -> Callable:
     """

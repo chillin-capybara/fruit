@@ -40,6 +40,8 @@ class Step(object):
     status : int
         Status code of the current step. Possible values: `STATUS_UNKNOWN`, `STATUS_SKIPPED`,
         `STATUS_OK`, `STATUS_ERR`.
+    time : float
+        Measured execution time in seconds
 
     Events
     ------
@@ -58,6 +60,8 @@ class Step(object):
     name: str = ""
     help: str = ""
     status: int = STATUS_UNKNOWN
+    time: float = .0
+
     OnActivate: Event = None
     OnDeactivate: Event = None
     OnSkipped: Event = None
@@ -104,8 +108,11 @@ class Step(object):
             Original return value of the function
         """
         self.OnActivate(sender=self)
+        tic = time.time()
+        retval = None
         try:
-            self.__func(*args, **kwargs)
+            retval = self.__func(*args, **kwargs)
+            self.status = STATUS_OK
         except SkipStepSignal as serr:
             self.status = STATUS_SKIPPED
             self.OnSkipped(sender=self, exception=serr)
@@ -114,6 +121,11 @@ class Step(object):
             self.OnFailed(sender=self, exception=ferr)
         except AbortStepSignal as aerr:
             self.status = STATUS_ERR
+            self.time = time.time() - tic
             self.OnAborted(sender=self, exception=aerr)
-        finally:
+            raise  # Raise the abort signal further!
+        finally: # In every case excep AbortStepSignal!!!
+            # Measure the elapsed execution time
+            self.time = time.time() - tic
             self.OnDeactivate(sender=self)
+            return retval
