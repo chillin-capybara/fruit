@@ -3,7 +3,7 @@ Fruit garden is the master collection singleton of the application
 """
 from .patterns import SingletonMeta
 from .target   import Target, FruitError
-from .step     import AbortStepSignal
+from .step     import Step, SkipStepSignal, FailStepSignal, AbortStepSignal
 from .provider import Provider
 import fruit.modules.console as console
 
@@ -106,21 +106,7 @@ class Garden(metaclass=SingletonMeta):
             raise ValueError("The target '{}' is not found!".format(target_name))
         else:
             cl, = flt_target
-            try:
-                cl()
-            except FruitError as ferr:
-                # TODO: Revision!!!
-                console.error("The make process was aborted. Reason:")
-                console.error(str(ferr))
-            except AbortStepSignal as aberr:
-                if len(str(aberr)) > 0:
-                    console.error("The make process was aborted! Reason: {}".format(str(aberr)))
-                else:
-                    console.error("The make process was aborted!")
-            finally:
-                console.echo()  # New line before the results are printed
-                cl.print_results()
-                self.__active_target = None
+            cl()
 
     def make_multiple(self, *targets):
         """
@@ -132,59 +118,46 @@ class Garden(metaclass=SingletonMeta):
         for each_targetname in targets:
             self.make_target(each_targetname)
 
-
-    def activate_target(self, target: Target):
+    def delegate_OnTargetActivate(self, sender: Target) -> None:
         """
-        Set the currently active target
+        Event handler for handling target activation events.
 
         Parameters
         ----------
-        `target` : Target
-            Target to active (activated from decorator)
+        `caller` : Target
+            Target, that has been activated via a function call.
         """
-        self.__active_target = target
-
-    def active_target(self) -> Target:
+        print(sender.name + " was activated!")
+    
+    def delegate_OnTargetDeactivate(self, sender: Target) -> None:
         """
-        A target is activated, whenever the make target function is called.
-        If this is the case, any other called sub-target will belong to this
-        target as a step.
+        Event handler for target deactivation. Will be called, when a target finished executing.
 
-        Returns
-        -------
-        Target
-            Currently active targe. None if there is no running process.
+        Parameters
+        ----------
+        `sender` : Target
+            Target, that triggered the event.
         """
-        return self.__active_target
+        print(f"Finished target: {sender.name}")
+    
+    def delegate_OnStepActivate(self, sender: Step) -> None:
+        pass
+    
+    def delegate_OnStepSkipped(self, sender: Step, exception: SkipStepSignal) -> None:
+        pass
 
+    def delegate_OnStepFailed(self, sender: Step, exception: FailStepSignal) -> None:
+        pass
+    
+    def delegate_OnStepAborted(self, sender: Step, exception: AbortStepSignal) -> None:
+        pass
+    
+    def delegate_OnStepDeactivate(self, sender: Step) -> None:
+        pass
 
     def get_targets(self):
         for each_target in self.__targets:
             yield each_target
-
-    def reset_returncode(self):
-        """
-        Reset the returncode to 1.
-
-        Note
-        ----
-        It shall be called after a target is executed
-        """
-        self.__returncode = 1
-
-    def set_returncode(self, returncode: int):
-        """
-        Set the application return code.
-
-        Parameters
-        ----------
-        `returncode` : int
-            Application returncode to return after the execution was finished.
-        """
-        if type(returncode) is int:
-            self.__returncode = returncode
-        else:
-            raise TypeError("The given returncode is not an integer!")
 
     @property
     def returncode(self) -> int:

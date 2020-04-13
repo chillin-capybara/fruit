@@ -4,11 +4,14 @@ Module for implementing the inner steps of a target
 import fruit.modules.console as console
 from fruit.globals import FMT_STEPHEADER, FMT_SKIPMESSAGE, FMT_FAILMESSAGE
 import time
+from typing import Callable, Any
+from .event import Event
 
 
 STATUS_OK = 0
 STATUS_ERR = 1
 STATUS_SKIPPED = -1
+STATUS_UNKNOWN = -2
 
 class SkipStepSignal(Exception):
     """Signal to indicate, whenever a step shall be skipped"""
@@ -24,115 +27,93 @@ class FailStepSignal(Exception):
     may continue."""
     pass
 
-
 class Step(object):
-    name: str = ""  # Name of the step
-    desc: str = ""  # Description of the step
-    number: int = 0
-    status: int = 1  # Error by default
+    """
+    Step object for handling and registering make steps.
 
-    __timer0 : float = .0  # Start execution time of the step
-    __elapsed_time : float = .0  # Measured elapsed time spent in the current step
+    Attributes
+    ----------
+    name : str
+        Step name
+    help : str
+        Help text (description) of the step
+    status : int
+        Status code of the current step. Possible values: `STATUS_UNKNOWN`, `STATUS_SKIPPED`,
+        `STATUS_OK`, `STATUS_ERR`.
 
-    def __init__(self, name: str, desc: str, number: int):
-        if type(name) is not str:
-            raise TypeError("The step name must be a string!")
-        if type(desc) is not str:
-            raise TypeError("The step description bust be a string!")
+    Events
+    ------
+    OnActivate : Event(sender=self)
+        Called when the step execution begins
+    OnDeactivate: Event(sender=self)
+        Called whe the step execution finished
+    OnSkipped : Event(sender=self, exception=SkipStepSignal())
+        Called when `fruit.skip()` is called inside of the step
+    OnFailed : Event(sender=self, exception=FailStepSignal())
+        Called when `fruit.fail()` is called inside of the step
+    OnAborted : Event(sender=self, exception=AbortStepSignal())
+        Called when `fruit.abort()` is called inside of the step
+    """
 
-        if type(number) is not int:
-            raise TypeError("The step number must be an integer!")
+    name: str = ""
+    help: str = ""
+    status: int = STATUS_UNKNOWN
+    OnActivate: Event = None
+    OnDeactivate: Event = None
+    OnSkipped: Event = None
+    OnFailed: Event = None
+    OnAborted: Event = None
+    __func: Callable[[any], any] = None
 
-        self.name = name
-        self.desc = desc
-        self.number = number
-
-    def __tic(self):
-        """
-        Start measuring the execution time and store it in `__timer0`.
-        """
-        self.__timer0 = time.clock()
-
-    def __toc(self) -> float:
-        """
-        Stop measuring the execution time and set the elapsed time.
-        """
-        # Set the active step
-        self.__elapsed_time = time.clock() - self.__timer0
-
-    def __enter__(self):
-        """
-        Enter the context of the current step.
-        """
-        console.echo()
-        # Print the step header
-        self.print_stephead()
-
-        # Start measuring the execution time
-        self.__tic()
-
-        # Return the object, to use it directly as a context manager
-        return self
-
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        """
-        Leave the context of the current step. Stop the time measurements and perform post
-        step actions.
-        """
-        self.__toc()
-
-        if exc_type is SkipStepSignal:
-            self.status = STATUS_SKIPPED
-            console.warning(FMT_SKIPMESSAGE.format(reason = exc_value if type(exc_value) is str else ""))
-        elif exc_type is FailStepSignal:
-            # The step failed, but continue the execution
-            self.status = STATUS_ERR
-
-            if str(exc_value) is not None: # TODO: Reason display...
-                console.error(FMT_FAILMESSAGE.format(reason = str(exc_value)))
-            else:
-                console.error((FMT_FAILMESSAGE.format(reason="")))
+    def __init__(self, func: Callable[[any], any], name:str, help:str=""):
         
-        elif exc_type is not None:
-            self.status = STATUS_ERR
-
-            # Raise an error signal to stop the complete execution
-            if type(exc_value) is str:
-                raise AbortStepSignal(exc_value)
-            else:
-                raise AbortStepSignal("Random value")
+        if callable(func):
+            self.__func = func
         else:
-            self.status = STATUS_OK
+            raise TypeError("The given function is not callable!")
+        
+        if type(name) is str:
+            if len(name) > 0:
+                self.name = name
+            else:
+                raise ValueError("The given name cannot be empty!")
+        else:
+            raise TypeError("The step name must be a string!")
+        
+        if type(help) is str:
+            self.help = help
+        else:
+            raise TypeError("The step help must be a string!")
 
-        # Stop exception propagating
-        return True
+        # Create the class events (with an example call)
+        self.OnActivate   = Event(sender=self)
+        self.OnDeactivate = Event(sender=self)
 
-    def setstatus(self, value: int):
+        # Create event handlers for the exception based status changes
+        self.OnSkipped    = Event(sender=self, exception=None)
+        self.OnFailed     = Event(sender=self, exception=None)
+        self.OnAborted    = Event(sender=self, exception=None)
+
+    def __call__(self, *args, **kwargs) -> Any:
         """
-        Set the status of the step to True (successful).
-        """
-        self.status = value
-
-    def get_elapsed_time(self) -> float:
-        """
-        Get the execution time in seconds of the step, when it was already executed.
-
+        Function encapsulation of the step call with added event triggers.
+        
         Returns
         -------
-        float
-            Execution time
-
-        Note
-        ----
-        When the step was not executed yet, the value will default back to 0.0
+        Any
+            Original return value of the function
         """
-        return self.__elapsed_time
-
-    def getstatus(self) -> int:
-        return self.status
-
-    def print_stephead(self):
-        """
-        Print a formatted step header to the console to separate steps from each other.
-        """
-        console.echo(FMT_STEPHEADER.format(number=self.number, name=self.name))
+        self.OnActivate(sender=self)
+        try:
+            self.__func(*args, **kwargs)
+        except SkipStepSignal as serr:
+            self.status = STATUS_SKIPPED
+            self.OnSkipped(sender=self, exception=serr)
+        except FailStepSignal as ferr:
+            self.status = STATUS_ERR
+            self.OnFailed(sender=self, exception=ferr)
+        except AbortStepSignal as aerr:
+            self.status = STATUS_ERR
+            self.OnAborted(sender=self, exception=aerr)
+        finally:
+            self.OnDeactivate(sender=self)

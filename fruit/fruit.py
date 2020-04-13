@@ -32,7 +32,7 @@ def collect(path:str):
         tbl = []
 
         for trg in Garden().get_targets():
-            tbl.append((trg.name, trg.desc))
+            tbl.append((trg.name, trg.help))
         
         console.echo(tabulate(tbl, headers=['Target', 'Description']), )
         console.echo()
