@@ -240,10 +240,10 @@ class Garden(metaclass=SingletonMeta):
         printing.print_step_head(step=sender, number=self.get_curr_step_nr())
     
     def delegate_OnStepSkipped(self, sender: Step, exception: SkipStepSignal) -> None:
-        pass
+        printing.print_step_skip(step=sender, reason=str(exception))
 
     def delegate_OnStepFailed(self, sender: Step, exception: FailStepSignal) -> None:
-        pass
+        printing.print_step_fail(step=sender, reason=str(exception))
     
     def delegate_OnStepAborted(self, sender: Step, exception: AbortStepSignal) -> None:
         pass

@@ -66,6 +66,7 @@ def print_target_head(target: Target) -> None:
     target : Target
         Target object
     """
+    console.echo()
     console.echo(f"{ICON_TARGET} Making '{target.name}' ...")
     console.echo("="*WIDTH)
 
@@ -98,6 +99,34 @@ def print_step_head(step: Step, number: int) -> None:
 
 def print_step_foot(step: Step, number: int) -> None:
     pass
+
+def print_step_fail(step: Step, reason: str) -> None:
+    """
+    Print a diagnostic message to the console when a step failed.
+    
+    Parameters
+    ----------
+    step : Step
+        Step that caused the fail.
+    """
+    if reason is None or reason is "":
+        reason = ""
+
+    console.error(f"{ICON_ERR} Step '{step.name}' failed! {reason}")
+
+def print_step_skip(step: Step, reason: str) -> None:
+    """
+    Print a diagnostic message to the console when a step was skipped.
+    
+    Parameters
+    ----------
+    step : Step
+        Step that was skipped.
+    """
+    if reason is None or reason is "":
+        reason = ""
+
+    console.warning(f"{ICON_SKIP} Step '{step.name}' was skipped! {reason}")
 
 def print_summary(last_target:Target, steps:List[Step]) -> None:
     """

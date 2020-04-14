@@ -8,7 +8,7 @@ def read(fname):
 
 setup(
     name="fruit",
-    version="0.2.7",
+    version="0.3.0",
     packages=find_packages(),
     install_requires=['click', 'colorama', 'tabulate', 'questionary'],
     entry_points={
