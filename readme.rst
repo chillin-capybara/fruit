@@ -2,63 +2,60 @@
 Fruit
 =====
 
-The readme is under development...
+Fruit is an automation framework written in python.
 
-Roadmap
--------
+Configuration
+-------------
 
+Fruit, when installed via pip, can be called via the command ``fruit`` from the 
+terminal. 
 
-* yaml syntax checking for step types
-* step type: ``fruit`` to ripen a fruit inside a ripening
-* finish implementing step type: job
-* better documentation
-* implement unit tests
+Targets
+^^^^^^^
 
-The fruits
-----------
+Targets are entry points of the **fruit make** process. They may be executed with the command ``fruit make <target>`` from the command line.
 
-The fruits (\ ``fruit.yaml``\ ) are the pipeline configuration files. They contain all the
-necessary information to execute commands, use global variables and list expansions.
+Each target may consist of multiple steps or even multiple sub targets. Each of these elemts will be automatically detected during the execution of a target. All sub targets and steps will be automatically listed and added to the result tracking of the called target.
 
-Name
-~~~~
+To create a new target, use the decorator ``@fruit.target()``.
 
-Each fruit needs a name, which will identify the project the fruit belongs to.
-To set the project name, use the following syntax:
+The following example will create a target with the name ``build`` and an empty
+help text.
 
-.. code-block:: yaml
+.. code-block:: python
 
-   name: My Project Name
+   @fruit.target()
+   def build():
+     pass
 
-Description
-~~~~~~~~~~~
+The name and the help text of the target can be overwritten by using the argumetns ``name`` and ``help`` of ``@fruit.target()``.
 
-The description field shall contain a longer description of the project, its goal
-and the jobs defined in the fruit file. To set the description, use the following sytnax:
+.. code-block:: python
 
-.. code-block:: yaml
+   # Create a target with the name 'build-new'
+   @fruit.target(name='build-new', help='Build a new castle')
+   def build():
+     pass
 
-   desc: Create automated builds, package documentation, etc...
+The target results will be generated during the target execution process and the results will be shown after target is finished. May the target process be aborted, the results will show the unsuccessful execution with the proper error message.
 
-Global variables
-~~~~~~~~~~~~~~~~
+Steps
+^^^^^
 
-It is possible to define global variables in the fruit file, which will be substituted during the yaml loading.
+Steps are the parts of targets and they serve diagnostic purposes and ease the
+generation of detailed reports. They are not mandatory to define, but the provide nice diagnostics and cli output for longer processes.
 
-To create a global variable, add a new key-value pair to the list ``glob``.
+Steps can be created by using the decorator ``@fruit.step()``. The step name will be the name of the decorated function by default but it can be overwritten
+by the argument ``name``.
 
-.. code-block:: yaml
+.. code-block:: python
 
-   glob:
-     libpath: /usr/lib/
-     binpath: $(libpath)bin
+   # Create a step called step1 without help text
+   @fruit.step()
+   def step1():
+     pass
 
-After the global variable is created it can be referenced with the sytax ``$(<name>)``.
-
-It's important to note, that global variables are propagated only downwards. As a consequence of this they affect:
-
-
-* global variables define below,
-* lists,
-* step commands,
-* step arguments.
+   # Create a step called 'GIT version' with help text
+   @fruit.step(name='GIT version', help='Get the current version of the GIT repo')
+   def step2():
+     pass

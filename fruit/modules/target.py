@@ -12,8 +12,28 @@ class FruitError(Exception):
     pass
 
 class Target(object):
+    """
+    Target object implementation for fruit targets.
+
+    Attributes
+    ----------
+    name : str
+        Target name; callable via fruit make <name>
+    help : str
+        Help text of the target
+    origin : str
+        Origin of the target
+
+    Events
+    ------
+    OnActivate : Event(sender=self)
+        Called when the target is activate via `fruit make <name>` or a function call.
+    OnDeactivate: Event(sender=self)
+        Called when the execution of the event finishes.
+    """
     name: str = ""
     help: str = ""
+    origin: str = ""
     __func: Callable[[], None] = None
 
     OnActivate: Event = None  # Event to call when a target is activated

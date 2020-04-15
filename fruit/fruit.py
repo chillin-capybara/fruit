@@ -1,5 +1,5 @@
 """
-Tratatata...
+Fruit CLI Framework for process automation.
 """
 
 import click
@@ -9,6 +9,7 @@ from fruit.modules.fruitloader import load
 from fruit.modules.garden import Garden
 import fruit.modules.console as console
 import fruit.modules.printing as printing
+from fruit.modules.pickup import pickup_path, drop_path, load_fruit_env
 
 
 # Import the extensions!
@@ -21,6 +22,37 @@ def cli():
     """
     pass
 
+
+@cli.command()
+@click.option('-p', '--pickup', type=click.Path(exists=True), help='Path (relative or absolute) to add to the fruit path', required=False)
+@click.option('-d', '--drop', type=click.Path(exists=True), help='Path (relative or absolute) to remove from the fruit path', required=False)
+def path(pickup: click.Path, drop: click.Path):
+    """
+    Add/Remove folder or file path for globally available fruit configurations.
+
+    \b
+    Use `fruit path` to list all the picked up paths.
+    To add a path, use the option --pickup <path>.
+    To remove a path, use the option --drop <path>.
+    """
+    if pickup is None and drop is None:
+        # Print the list of paths
+        pathlist = load_fruit_env()
+        if len(pathlist) > 0:
+            console.echo("List of added pathes: ")
+            console.echo()
+
+            for path in pathlist:
+                console.echo("  " + path)
+            console.echo()
+        else:
+            console.echo("🍌 There are no fruits picked up!")
+    else:
+        if pickup is not None:
+            pickup_path(pickup)
+
+        if drop is not  None:
+            drop_path(drop)
 
 @cli.command()
 @click.argument('path', default='.')
@@ -49,9 +81,12 @@ def make(target: str):
     """
     Make a fruit target from the parsed fruitconfig.py file.
     """
-    load('.')
-    # Pass all the targets to the make function
-    Garden().make_multiple(*target)
+    try:
+        load('.')
+        # Pass all the targets to the make function
+        Garden().make_multiple(*target)
+    except Exception as exc:
+        console.error(str(exc))
 
 @cli.command()
 @click.argument('name', required=True)

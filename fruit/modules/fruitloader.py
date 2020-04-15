@@ -51,7 +51,9 @@ def compile_config(path: str):
     pyobj = compile(source=source, filename=filename, mode='exec')
     exec(pyobj, namespace, namespace)
 
-def load(path: str):
-
-    configpath = obtain_config(path)
-    compile_config(configpath)
+def load(*path: str):
+    # TODO: Implement loading of multiple fruit configs
+    # TODO: Add load local option
+    for each_path in path:
+        configpath = obtain_config(each_path)
+        compile_config(configpath)
