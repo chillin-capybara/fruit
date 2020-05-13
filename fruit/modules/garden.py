@@ -8,7 +8,7 @@ from .provider import Provider
 import fruit.modules.console as console
 import fruit.modules.printing as printing
 
-from typing import List
+from typing import List, Dict
 import os
 
 class Garden(metaclass=SingletonMeta):
@@ -19,6 +19,7 @@ class Garden(metaclass=SingletonMeta):
     __steps : list = None
     __target_stack: List[Target] = None
     __step_stack : List[Step] = None
+    __options : dict = None
     # Overall returncode of the file. Each target call resets it
     __returncode: int = 1
 
@@ -30,9 +31,13 @@ class Garden(metaclass=SingletonMeta):
 
         if self.__target_stack is None:
             self.__target_stack = []
-        
+
         if self.__step_stack is None:
             self.__step_stack = []
+
+        if self.__options is None:
+            self.__options = {}
+            self.__create_options()
 
         if self.__steps is None:
             self.__steps = list() # Initialize a new list for the steps
@@ -40,11 +45,22 @@ class Garden(metaclass=SingletonMeta):
         # Initialize the provider list
         if self.__providers is None:
             self.__providers = []
-    
+
+    def __create_options(self) -> None:
+        """
+        Create the default fruit configuraiton options.
+        """
+        self.options['pure'] = False
+
+    @property
+    def options(self) -> Dict:
+        """Get the global options."""
+        return self.__options
+
     def getcwd(self) -> str:
         """
         Get the absolute path of the current working directory.
-        
+
         Returns
         -------
         str
@@ -162,8 +178,11 @@ class Garden(metaclass=SingletonMeta):
             Target, that has been activated via a function call.
         """
         self.__target_stack.append(sender) # Add the target to the stack
-        printing.print_target_head(target=sender)
-    
+
+        # Only print, when allowed
+        if self.options['pure'] is False:
+            printing.print_target_head(target=sender)
+
     def delegate_OnTargetDeactivate(self, sender: Target) -> None:
         """
         Event handler for target deactivation. Will be called, when a target finished executing.
@@ -175,11 +194,13 @@ class Garden(metaclass=SingletonMeta):
         """
         # Pop the target from the stack
         last_trg = self.__target_stack.pop()
-        printing.print_target_foot(target=sender)
 
-        # Only print the summary, if there are no more targets left!
-        if len(self.__target_stack) == 0:
-            printing.print_summary(last_trg, self.__steps)
+        if self.options['pure'] is False:
+            printing.print_target_foot(target=sender)
+
+            # Only print the summary, if there are no more targets left!
+            if len(self.__target_stack) == 0:
+                printing.print_summary(last_trg, self.__steps)
         else:
             pass # Print a middle-summary
     
@@ -237,7 +258,8 @@ class Garden(metaclass=SingletonMeta):
         # Name prefix is added ONLY for the full name! DON'T INHERIT IT
         sender.fullname = self.__add_step_name_prefix(sender.name)
 
-        printing.print_step_head(step=sender, number=self.get_curr_step_nr())
+        if self.options['pure'] is False:
+            printing.print_step_head(step=sender, number=self.get_curr_step_nr())
     
     def delegate_OnStepSkipped(self, sender: Step, exception: SkipStepSignal) -> None:
         printing.print_step_skip(step=sender, reason=str(exception))

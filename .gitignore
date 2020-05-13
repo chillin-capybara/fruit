@@ -1,4 +1,8 @@
 *.pyc
 /build/
 /dist/
+/docs/
+/env/
+/.idea/
+/.vscode/
 *.egg-info

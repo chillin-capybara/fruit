@@ -1,6 +1,8 @@
 import click
 
 FRUITCONFIG_NAME = "fruitconfig.py"
+FRUIT_DIR_NAME = ".fruit"
+FRUIT_DIR_CONFIG = f"{FRUIT_DIR_NAME}/__init__.py"
 
 WIDTH = (click.get_terminal_size()[0] - 10)
 

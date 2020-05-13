@@ -4,22 +4,21 @@ Fruit CLI Framework for process automation.
 
 import click
 import sys
-from tabulate import tabulate
 from fruit.modules.fruitloader import load
 from fruit.modules.garden import Garden
 import fruit.modules.console as console
 import fruit.modules.printing as printing
 from fruit.modules.pickup import pickup_path, drop_path, load_fruit_env
 
-
 # Import the extensions!
 import fruit.extensions.global_providers
 
 @click.group()
-def cli():
+def cli(dir):
     """
     Fruit cli framework for task automation.
     """
+    # Load the fruit config in the directory
     pass
 
 
@@ -55,17 +54,18 @@ def path(pickup: click.Path, drop: click.Path):
             drop_path(drop)
 
 @cli.command()
-@click.argument('path', default='.')
-def collect(path:str):
+@click.option(
+    '-d', '--dir', required=False, type=click.Path(exists=True, dir_okay=True, file_okay=False),
+    help='Directory to load fruit configuration from', default='.')
+def collect(dir):
     """
     List the fruit targets in the given path.
     \b
 
     PATH (default: .) - Path of the directory or .py file to scan.
     """
+    load(dir)
     try:
-        # Load the config file
-        load(path)
         # Print the list of targets
         printing.print_target_list(Garden().get_targets())
 
@@ -76,19 +76,28 @@ def collect(path:str):
         console.error(str(err))
 
 @cli.command()
+@click.option(
+    '-d', '--dir', required=False, type=click.Path(exists=True, dir_okay=True, file_okay=False),
+    help='Directory to load fruit configuration from', default='.')
 @click.argument('target', required=True, nargs=-1)
-def make(target: str):
+@click.option('-p', '--pure', type=click.BOOL, is_flag=True, default=False, help='Only show user logs and error messages')
+def make(dir: click.Path, target: str, pure: bool):
     """
     Make a fruit target from the parsed fruitconfig.py file.
     """
+    load(dir)
     try:
-        load('.')
+        if pure is not None:
+            Garden().options['pure'] = pure
         # Pass all the targets to the make function
         Garden().make_multiple(*target)
     except Exception as exc:
         console.error(str(exc))
 
 @cli.command()
+@click.option(
+    '-d', '--dir', required=False, type=click.Path(exists=True, dir_okay=True, file_okay=False),
+    help='Directory to load fruit configuration from', default='.')
 @click.argument('name', required=True)
 def get(name: str):
     """Run an information provider to obtain data from the current project.
@@ -99,7 +108,6 @@ def get(name: str):
     
     """
     try:
-        load('.')
         result = Garden().run_provider(name=name)
 
         console.echo(result)

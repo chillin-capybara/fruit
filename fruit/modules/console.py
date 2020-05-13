@@ -1,5 +1,9 @@
 import click
 
+# TODO: Create a console object instead of the module.
+#  - Refactor and rename functions
+#  - Extended functionality
+
 def echo(obj: any=None):
     """
     Write a string to the console.
